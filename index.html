@@ -99,6 +99,11 @@
       opacity: .85;
     }
 
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
     section {
       padding: 70px 7%;
     }
@@ -185,6 +190,17 @@
       border: 1px solid #444;
       border-radius: 5px;
       color: white;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #d4af37;
+    }
+
+    .status {
+      min-height: 24px;
+      margin-top: 12px;
+      font-size: 14px;
     }
 
     .contact {
@@ -263,6 +279,7 @@
           <h3>JD Fan Cap</h3>
           <p>Classic fan collection cap.</p>
           <div class="price">$29.99</div>
+
           <button class="btn" onclick="order('JD Fan Cap')">
             Order
           </button>
@@ -276,6 +293,7 @@
           <h3>Johnny Depp T-Shirt</h3>
           <p>Fan-designed collectible T-shirt.</p>
           <div class="price">$39.99</div>
+
           <button class="btn" onclick="order('Johnny Depp T-Shirt')">
             Order
           </button>
@@ -289,6 +307,7 @@
           <h3>Fan Event Ticket</h3>
           <p>Fan-event ticket information.</p>
           <div class="price">From $50</div>
+
           <button class="btn" onclick="order('Fan Event Ticket')">
             Details
           </button>
@@ -308,14 +327,15 @@
       Enter the promotional giveaway using the form below.
       Official eligibility requirements, terms, and winner-selection
       information should be reviewed before entering.
-    </p>
+    </sb_publishable_KoECvB7mxoeN_29SW131Mw_BkIQknfB>
 
-    <form class="giveaway-form" onsubmit="enterGiveaway(event)">
+    <form class="giveaway-form" id="giveawayForm">
 
       <input
         type="text"
         id="name"
         placeholder="Full Name"
+        maxlength="100"
         required
       >
 
@@ -323,12 +343,15 @@
         type="email"
         id="email"
         placeholder="Email Address"
+        maxlength="254"
         required
       >
 
-      <button class="btn" type="submit">
+      <button class="btn" id="submitButton" type="submit">
         ENTER GIVEAWAY
       </button>
+
+      <div class="status" id="status"></div>
 
     </form>
 
@@ -361,9 +384,35 @@
 
   </footer>
 
+
+  <!-- Supabase JavaScript Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
 
+    /* ================================
+       SUPABASE CONFIGURATION
+       ================================ */
+
+    const SUPABASE_URL =
+      "https://jqabzsomopnfdbcabdzh.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+      "PASTE_YOUR_SB_PUBLISHABLE_KEY_HERE";
+
+    const supabaseClient =
+      window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+      );
+
+
+    /* ================================
+       STORE ORDER BUTTON
+       ================================ */
+
     function order(product) {
+
       const email = "jonnyddepp07@gmail.com";
 
       const subject = encodeURIComponent(
@@ -375,29 +424,97 @@
       );
 
       window.location.href =
-        "mailto:" + email +
-        "?subject=" + subject +
-        "&body=" + body;
+        "mailto:" +
+        email +
+        "?subject=" +
+        subject +
+        "&body=" +
+        body;
     }
 
-    function enterGiveaway(event) {
+
+    /* ================================
+       GIVEAWAY REGISTRATION
+       ================================ */
+
+    const giveawayForm =
+      document.getElementById("giveawayForm");
+
+    giveawayForm.addEventListener("submit", async function(event) {
+
       event.preventDefault();
 
-      const name = document.getElementById("name").value;
-      const email = document.getElementById("email").value;
+      const name =
+        document.getElementById("name").value.trim();
 
-      alert(
-        "Thank you, " + name +
-        "! Your entry has been recorded in this demo version. " +
-        "The online database will be connected in the next step."
-      );
+      const email =
+        document.getElementById("email").value.trim();
 
-      console.log({
-        name: name,
-        email: email,
-        date: new Date().toISOString()
-      });
-    }
+      const status =
+        document.getElementById("status");
+
+      const submitButton =
+        document.getElementById("submitButton");
+
+
+      if (!name || !email) {
+
+        status.textContent =
+          "Please enter your name and email.";
+
+        return;
+      }
+
+
+      submitButton.disabled = true;
+
+      submitButton.textContent =
+        "SUBMITTING...";
+
+      status.textContent = "";
+
+
+      try {
+
+        const { error } =
+          await supabaseClient
+            .from("giveaway_entries")
+            .insert([
+              {
+                full_name: name,
+                email: email
+              }
+            ]);
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        status.textContent =
+          "Your entry has been submitted successfully.";
+
+        document.getElementById("name").value = "";
+        document.getElementById("email").value = "";
+
+
+      } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+          "We couldn't submit your entry. Please try again.";
+
+      } finally {
+
+        submitButton.disabled = false;
+
+        submitButton.textContent =
+          "ENTER GIVEAWAY";
+      }
+
+    });
 
   </script>
 
