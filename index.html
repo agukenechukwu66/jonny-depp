@@ -198,8 +198,8 @@
     }
 
     .status {
-      min-height: 24px;
-      margin-top: 12px;
+      min-height: 25px;
+      margin-top: 10px;
       font-size: 14px;
     }
 
@@ -325,9 +325,8 @@
 
     <p>
       Enter the promotional giveaway using the form below.
-      Official eligibility requirements, terms, and winner-selection
-      information should be reviewed before entering.
-    </sb_publishable_KoECvB7mxoeN_29SW131Mw_BkIQknfB>
+      Eligibility requirements and official giveaway terms apply.
+    </p>
 
     <form class="giveaway-form" id="giveawayForm">
 
@@ -378,27 +377,23 @@
     </p>
 
     <p>
-      This website is not affiliated with Johnny Depp, his management,
-      representatives, or official organizations.
+      This website is not affiliated with Johnny Depp,
+      his management, representatives, or official organizations.
     </p>
 
   </footer>
 
 
-  <!-- Supabase JavaScript Library -->
+  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-
-    /* ================================
-       SUPABASE CONFIGURATION
-       ================================ */
 
     const SUPABASE_URL =
       "https://jqabzsomopnfdbcabdzh.supabase.co";
 
     const SUPABASE_PUBLISHABLE_KEY =
-      "PASTE_YOUR_SB_PUBLISHABLE_KEY_HERE";
+      "sb_publishable_KoECvB7mxoeN_29SW131Mw_BkIQknfB";
 
     const supabaseClient =
       window.supabase.createClient(
@@ -407,9 +402,7 @@
       );
 
 
-    /* ================================
-       STORE ORDER BUTTON
-       ================================ */
+    /* STORE BUTTONS */
 
     function order(product) {
 
@@ -424,23 +417,18 @@
       );
 
       window.location.href =
-        "mailto:" +
-        email +
-        "?subject=" +
-        subject +
-        "&body=" +
-        body;
+        "mailto:" + email +
+        "?subject=" + subject +
+        "&body=" + body;
     }
 
 
-    /* ================================
-       GIVEAWAY REGISTRATION
-       ================================ */
+    /* GIVEAWAY FORM */
 
-    const giveawayForm =
+    const form =
       document.getElementById("giveawayForm");
 
-    giveawayForm.addEventListener("submit", async function(event) {
+    form.addEventListener("submit", async function(event) {
 
       event.preventDefault();
 
@@ -453,7 +441,7 @@
       const status =
         document.getElementById("status");
 
-      const submitButton =
+      const button =
         document.getElementById("submitButton");
 
 
@@ -466,17 +454,14 @@
       }
 
 
-      submitButton.disabled = true;
-
-      submitButton.textContent =
-        "SUBMITTING...";
-
+      button.disabled = true;
+      button.textContent = "SUBMITTING...";
       status.textContent = "";
 
 
       try {
 
-        const { error } =
+        const { data, error } =
           await supabaseClient
             .from("giveaway_entries")
             .insert([
@@ -484,34 +469,36 @@
                 full_name: name,
                 email: email
               }
-            ]);
+            ])
+            .select();
 
 
         if (error) {
+          console.error("Supabase error:", error);
           throw error;
         }
 
 
+        console.log("Entry saved:", data);
+
         status.textContent =
           "Your entry has been submitted successfully.";
 
-        document.getElementById("name").value = "";
-        document.getElementById("email").value = "";
+        form.reset();
 
 
       } catch (error) {
 
-        console.error(error);
+        console.error("Submission error:", error);
 
         status.textContent =
-          "We couldn't submit your entry. Please try again.";
+          "Entry could not be submitted. Please try again.";
 
       } finally {
 
-        submitButton.disabled = false;
+        button.disabled = false;
+        button.textContent = "ENTER GIVEAWAY";
 
-        submitButton.textContent =
-          "ENTER GIVEAWAY";
       }
 
     });
